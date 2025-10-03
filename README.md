@@ -1,7 +1,7 @@
 
 # LUCT Reporting App (Sample Implementation)
 
-This repository is a **starter implementation** for the Web Application Development assignment (DIWA2110).
+This repository is a **starter implementation** for the Web Application Development.
 It includes a **React** frontend, an **Express / Node.js** backend, and a **MySQL** schema (for use with XAMPP).
 
 ## What is included
