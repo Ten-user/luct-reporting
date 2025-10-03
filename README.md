@@ -41,9 +41,3 @@ It includes a **React** frontend, an **Express / Node.js** backend, and a **MySQ
 - You can register new accounts (student / lecturer /prl / pl) using the Register form.
 - Courses can be added via the backend API (`POST /api/courses`) — a sample course is provided in the SQL.
 - This is a minimal but complete starter template — extend it to satisfy all assignment requirements and polish UI/UX.
-
----
-If you want, I can now:
-- Walk through each file explaining how it works.
-- Add extra features (search, Excel report generation).
-- Deploy the app (instructions).
