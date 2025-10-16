@@ -1,4 +1,3 @@
-// backend/routes/courseLecturers.js
 const express = require('express');
 const router = express.Router();
 const pool = require('../db');
@@ -12,10 +11,10 @@ router.get('/', auth, async (req, res) => {
     }
 
     const result = await pool.query(`
-      SELECT cl.id, c.course_name, c.course_code, u.name AS lecturer_name, u.email
-      FROM course_lecturers cl
-      JOIN courses c ON cl.course_id = c.id
-      JOIN users u ON cl.lecturer_id = u.id
+      SELECT l.id, c.course_name, c.course_code, u.name AS lecturer_name, u.email
+      FROM lectures l
+      JOIN courses c ON l.course_id = c.id
+      JOIN users u ON l.lecturer_id = u.id
       ORDER BY c.course_name
     `);
 
@@ -36,7 +35,7 @@ router.post('/', auth, async (req, res) => {
     const { course_id, lecturer_id } = req.body;
 
     await pool.query(
-      'INSERT INTO course_lecturers (course_id, lecturer_id) VALUES ($1, $2)',
+      'INSERT INTO lectures (course_id, lecturer_id) VALUES ($1, $2)',
       [course_id, lecturer_id]
     );
 
@@ -54,7 +53,7 @@ router.delete('/:id', auth, async (req, res) => {
       return res.status(403).json({ message: 'Only PL can unassign lecturers' });
     }
 
-    await pool.query('DELETE FROM course_lecturers WHERE id = $1', [req.params.id]);
+    await pool.query('DELETE FROM lectures WHERE id = $1', [req.params.id]);
 
     res.json({ message: 'Lecturer unassigned successfully' });
   } catch (err) {
