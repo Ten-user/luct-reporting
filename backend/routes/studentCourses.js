@@ -1,10 +1,9 @@
-// backend/routes/studentCourses.js
 const express = require('express');
 const router = express.Router();
 const pool = require('../db');
 const auth = require('../middleware/auth');
 
-// ✅ Enroll in a course (student only)
+// Enroll in a course (student only)
 router.post('/enroll', auth, async (req, res) => {
   try {
     if (req.user.role !== 'student') {
@@ -15,16 +14,16 @@ router.post('/enroll', auth, async (req, res) => {
     const student_id = req.user.id;
 
     // prevent duplicate enrollment
-    const [existing] = await pool.query(
-      'SELECT * FROM student_courses WHERE student_id = ? AND course_id = ?',
+    const existing = await pool.query(
+      'SELECT * FROM student_courses WHERE student_id = $1 AND course_id = $2',
       [student_id, course_id]
     );
-    if (existing.length > 0) {
+    if (existing.rows.length > 0) {
       return res.status(400).json({ message: 'Already enrolled in this course' });
     }
 
     await pool.query(
-      'INSERT INTO student_courses (student_id, course_id) VALUES (?, ?)',
+      'INSERT INTO student_courses (student_id, course_id) VALUES ($1, $2)',
       [student_id, course_id]
     );
 
@@ -35,7 +34,7 @@ router.post('/enroll', auth, async (req, res) => {
   }
 });
 
-// ✅ Unenroll from a course
+// Unenroll from a course
 router.delete('/unenroll/:course_id', auth, async (req, res) => {
   try {
     if (req.user.role !== 'student') {
@@ -46,7 +45,7 @@ router.delete('/unenroll/:course_id', auth, async (req, res) => {
     const student_id = req.user.id;
 
     await pool.query(
-      'DELETE FROM student_courses WHERE student_id = ? AND course_id = ?',
+      'DELETE FROM student_courses WHERE student_id = $1 AND course_id = $2',
       [student_id, course_id]
     );
 
@@ -57,7 +56,7 @@ router.delete('/unenroll/:course_id', auth, async (req, res) => {
   }
 });
 
-// ✅ Get student's enrolled courses
+// Get student's enrolled courses
 router.get('/my', auth, async (req, res) => {
   try {
     if (req.user.role !== 'student') {
@@ -66,15 +65,15 @@ router.get('/my', auth, async (req, res) => {
 
     const student_id = req.user.id;
 
-    const [rows] = await pool.query(
+    const result = await pool.query(
       `SELECT c.*
        FROM student_courses sc
        JOIN courses c ON sc.course_id = c.id
-       WHERE sc.student_id = ?`,
+       WHERE sc.student_id = $1`,
       [student_id]
     );
 
-    res.json(rows);
+    res.json(result.rows);
   } catch (err) {
     console.error('❌ My courses fetch error:', err);
     res.status(500).json({ message: 'Error fetching enrolled courses' });
