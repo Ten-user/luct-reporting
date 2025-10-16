@@ -13,11 +13,9 @@ router.get('/', auth, async (req, res) => {
     if (req.user.role === 'student') {
       query = `
         SELECT r.id, r.date_of_lecture, r.topic_taught, r.learning_outcomes,
-               cl.actual_number_present, cl.total_registered,
                c.class_name, c.faculty_name, u.name AS lecturer_name
         FROM reports r
         JOIN courses c ON r.course_id = c.id
-        JOIN classes cl ON cl.course_id = c.id AND cl.date_of_lecture = r.date_of_lecture
         JOIN users u ON r.lecturer_id = u.id
         JOIN student_courses sc ON sc.course_id = c.id
         WHERE sc.student_id = $1
@@ -30,11 +28,9 @@ router.get('/', auth, async (req, res) => {
     else if (req.user.role === 'lecturer') {
       query = `
         SELECT r.id, r.date_of_lecture, r.topic_taught, r.learning_outcomes,
-               cl.actual_number_present, cl.total_registered,
                c.class_name, c.faculty_name, u.name AS lecturer_name
         FROM reports r
         JOIN courses c ON r.course_id = c.id
-        JOIN classes cl ON cl.course_id = c.id AND cl.date_of_lecture = r.date_of_lecture
         JOIN users u ON r.lecturer_id = u.id
         WHERE r.lecturer_id = $1
         ORDER BY r.date_of_lecture DESC
@@ -46,11 +42,9 @@ router.get('/', auth, async (req, res) => {
     else if (req.user.role === 'prl') {
       query = `
         SELECT r.id, r.date_of_lecture, r.topic_taught, r.learning_outcomes,
-               cl.actual_number_present, cl.total_registered,
                c.class_name, c.faculty_name, u.name AS lecturer_name
         FROM reports r
         JOIN courses c ON r.course_id = c.id
-        JOIN classes cl ON cl.course_id = c.id AND cl.date_of_lecture = r.date_of_lecture
         JOIN users u ON r.lecturer_id = u.id
         WHERE c.faculty_name = $1
         ORDER BY r.date_of_lecture DESC
@@ -62,11 +56,9 @@ router.get('/', auth, async (req, res) => {
     else if (req.user.role === 'pl') {
       query = `
         SELECT r.id, r.date_of_lecture, r.topic_taught, r.learning_outcomes,
-               cl.actual_number_present, cl.total_registered,
                c.class_name, c.faculty_name, u.name AS lecturer_name
         FROM reports r
         JOIN courses c ON r.course_id = c.id
-        JOIN classes cl ON cl.course_id = c.id AND cl.date_of_lecture = r.date_of_lecture
         JOIN users u ON r.lecturer_id = u.id
         ORDER BY r.date_of_lecture DESC
       `;
