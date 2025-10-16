@@ -11,6 +11,7 @@ router.get('/', auth, async (req, res) => {
     let params = [];
 
     if (role === 'student') {
+      // Courses the student is already enrolled in
       query = `
         SELECT c.*
         FROM courses c
@@ -57,6 +58,64 @@ router.get('/', auth, async (req, res) => {
   } catch (err) {
     console.error('❌ Courses fetch error:', err);
     res.status(500).json({ message: 'Error fetching courses' });
+  }
+});
+
+// Get available courses for students to enroll
+router.get('/available', auth, async (req, res) => {
+  try {
+    if (req.user.role !== 'student') {
+      return res.status(403).json({ message: 'Only students can access available courses' });
+    }
+
+    const query = `
+      SELECT c.*
+      FROM courses c
+      WHERE c.id NOT IN (
+        SELECT course_id
+        FROM student_courses
+        WHERE student_id = $1
+      )
+      ORDER BY c.course_name
+    `;
+    const { rows } = await pool.query(query, [req.user.id]);
+    res.json(rows);
+
+  } catch (err) {
+    console.error('❌ Available courses error:', err);
+    res.status(500).json({ message: 'Error fetching available courses' });
+  }
+});
+
+// Enroll in a course
+router.post('/enroll', auth, async (req, res) => {
+  try {
+    if (req.user.role !== 'student') {
+      return res.status(403).json({ message: 'Only students can enroll' });
+    }
+
+    const { course_id } = req.body;
+
+    // Prevent duplicate enrollment
+    const exists = await pool.query(
+      'SELECT * FROM student_courses WHERE student_id = $1 AND course_id = $2',
+      [req.user.id, course_id]
+    );
+
+    if (exists.rows.length > 0) {
+      return res.status(400).json({ message: 'Already enrolled in this course' });
+    }
+
+    await pool.query(
+      'INSERT INTO student_courses (student_id, course_id) VALUES ($1, $2)',
+      [req.user.id, course_id]
+    );
+
+    res.json({ message: 'Enrolled successfully' });
+
+  } catch (err) {
+    console.error('❌ Enroll error:', err);
+    res.status(500).json({ message: 'Error enrolling in course' });
   }
 });
 
