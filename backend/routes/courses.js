@@ -24,8 +24,8 @@ router.get('/', auth, async (req, res) => {
       query = `
         SELECT c.*
         FROM courses c
-        JOIN course_lecturers cl ON cl.course_id = c.id
-        WHERE cl.lecturer_id = $1
+        JOIN lectures l ON l.course_id = c.id
+        WHERE l.lecturer_id = $1
         ORDER BY c.course_name
       `;
       params = [req.user.id];
@@ -44,8 +44,8 @@ router.get('/', auth, async (req, res) => {
       query = `
         SELECT c.*, STRING_AGG(u.name, ', ') AS lecturers
         FROM courses c
-        LEFT JOIN course_lecturers cl ON cl.course_id = c.id
-        LEFT JOIN users u ON cl.lecturer_id = u.id
+        LEFT JOIN lectures l ON l.course_id = c.id
+        LEFT JOIN users u ON l.lecturer_id = u.id
         GROUP BY c.id, c.faculty_name, c.class_name, c.course_name, c.course_code, c.venue, c.scheduled_time, c.total_registered
         ORDER BY c.course_name
       `;
