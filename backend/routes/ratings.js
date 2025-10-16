@@ -10,12 +10,12 @@ router.post('/', auth, async (req, res) => {
       return res.status(403).json({ message: 'Only students can submit ratings' });
     }
 
-    const { course_id, score, feedback } = req.body;
-    const userId = req.user.id;
+    const { course_id, rating, comment } = req.body;
+    const studentId = req.user.id;
 
     await pool.query(
-      'INSERT INTO ratings (user_id, course_id, score, feedback) VALUES ($1, $2, $3, $4)',
-      [userId, course_id, score, feedback]
+      'INSERT INTO ratings (student_id, course_id, rating, comment) VALUES ($1, $2, $3, $4)',
+      [studentId, course_id, rating, comment]
     );
 
     res.json({ message: 'Rating submitted successfully' });
@@ -32,48 +32,48 @@ router.get('/', auth, async (req, res) => {
     let params = [];
 
     if (req.user.role === 'student') {
-      // 🎓 Student → see their own ratings
       query = `
-        SELECT r.id, c.class_name, r.score, r.feedback, r.created_at
+        SELECT r.id, c.class_name, r.rating AS score, r.comment AS feedback, r.created_at
         FROM ratings r
         JOIN courses c ON r.course_id = c.id
-        WHERE r.user_id = $1
-        ORDER BY r.created_at DESC`;
+        WHERE r.student_id = $1
+        ORDER BY r.created_at DESC
+      `;
       params = [req.user.id];
 
     } else if (req.user.role === 'lecturer') {
-      // 👨‍🏫 Lecturer → ratings for their assigned courses
       query = `
-        SELECT r.id, c.class_name, r.score, r.feedback, r.created_at, u.name AS student_name
+        SELECT r.id, c.class_name, r.rating AS score, r.comment AS feedback, r.created_at, u.name AS student_name
         FROM ratings r
         JOIN courses c ON r.course_id = c.id
-        JOIN course_lecturers cl ON cl.course_id = c.id
-        JOIN users u ON r.user_id = u.id
-        WHERE cl.lecturer_id = $1
-        ORDER BY r.created_at DESC`;
+        JOIN lectures l ON l.course_id = c.id
+        JOIN users u ON r.student_id = u.id
+        WHERE l.lecturer_id = $1
+        ORDER BY r.created_at DESC
+      `;
       params = [req.user.id];
 
     } else if (req.user.role === 'prl') {
-      // 👨‍💼 PRL → ratings only from their faculty
       query = `
-        SELECT r.id, c.class_name, r.score, r.feedback, r.created_at,
+        SELECT r.id, c.class_name, r.rating AS score, r.comment AS feedback, r.created_at,
                u.name AS student_name, c.faculty_name
         FROM ratings r
         JOIN courses c ON r.course_id = c.id
-        JOIN users u ON r.user_id = u.id
+        JOIN users u ON r.student_id = u.id
         WHERE c.faculty_name = $1
-        ORDER BY r.created_at DESC`;
+        ORDER BY r.created_at DESC
+      `;
       params = [req.user.faculty_name];
 
     } else if (req.user.role === 'pl') {
-      // 📋 PL → all ratings
       query = `
-        SELECT r.id, c.class_name, r.score, r.feedback, r.created_at,
+        SELECT r.id, c.class_name, r.rating AS score, r.comment AS feedback, r.created_at,
                u.name AS student_name, c.faculty_name
         FROM ratings r
         JOIN courses c ON r.course_id = c.id
-        JOIN users u ON r.user_id = u.id
-        ORDER BY r.created_at DESC`;
+        JOIN users u ON r.student_id = u.id
+        ORDER BY r.created_at DESC
+      `;
     } else {
       return res.status(403).json({ message: 'Unauthorized' });
     }
