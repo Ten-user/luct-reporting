@@ -15,25 +15,30 @@ router.get('/', auth, async (req, res) => {
         SELECT c.*
         FROM courses c
         JOIN course_lecturers cl ON cl.course_id = c.id
-        WHERE cl.lecturer_id = ?
+        WHERE cl.lecturer_id = $1
         ORDER BY c.class_name`;
       params = [req.user.id];
 
     } else if (req.user.role === 'prl') {
       // PRL → only classes in their faculty
-      query = 'SELECT * FROM courses WHERE faculty_name = ? ORDER BY class_name';
+      query = `
+        SELECT * FROM courses
+        WHERE faculty_name = $1
+        ORDER BY class_name`;
       params = [req.user.faculty_name];
 
     } else if (req.user.role === 'pl') {
       // PL → all classes
       query = 'SELECT * FROM courses ORDER BY class_name';
       params = [];
+
     } else {
       return res.status(403).json({ message: 'Access denied' });
     }
 
-    const [rows] = await pool.query(query, params);
-    res.json(rows);
+    const result = await pool.query(query, params);
+    res.json(result.rows);
+
   } catch (err) {
     console.error("❌ Error fetching classes:", err);
     res.status(500).json({ message: 'Error fetching classes' });
