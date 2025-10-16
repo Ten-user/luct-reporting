@@ -18,7 +18,7 @@ router.get('/', auth, async (req, res) => {
         FROM reports r
         JOIN courses c ON r.course_id = c.id
         JOIN student_courses sc ON sc.course_id = c.id
-        WHERE sc.student_id = ?
+        WHERE sc.student_id = $1
         ORDER BY r.date_of_lecture DESC`;
       params = [req.user.id];
     }
@@ -31,7 +31,7 @@ router.get('/', auth, async (req, res) => {
                c.class_name, c.faculty_name, r.lecturer_name
         FROM reports r
         JOIN courses c ON r.course_id = c.id
-        WHERE r.lecturer_name = ?
+        WHERE r.lecturer_name = $1
         ORDER BY r.date_of_lecture DESC`;
       params = [req.user.name];
     }
@@ -44,7 +44,7 @@ router.get('/', auth, async (req, res) => {
                c.class_name, c.faculty_name, r.lecturer_name
         FROM reports r
         JOIN courses c ON r.course_id = c.id
-        WHERE c.faculty_name = ?
+        WHERE c.faculty_name = $1
         ORDER BY r.date_of_lecture DESC`;
       params = [req.user.faculty_name];
     }
@@ -62,8 +62,8 @@ router.get('/', auth, async (req, res) => {
       return res.status(403).json({ message: "Unauthorized" });
     }
 
-    const [rows] = await pool.query(query, params);
-    res.json(rows);
+    const result = await pool.query(query, params);
+    res.json(result.rows);
   } catch (err) {
     console.error('❌ Monitoring error:', err);
     res.status(500).json({ message: 'Error fetching monitoring data' });
