@@ -46,7 +46,7 @@ router.get('/', auth, async (req, res) => {
         FROM courses c
         LEFT JOIN lectures l ON l.course_id = c.id
         LEFT JOIN users u ON l.lecturer_id = u.id
-        GROUP BY c.id, c.faculty_name, c.class_name, c.course_name, c.course_code, c.venue, c.scheduled_time, c.total_registered
+        GROUP BY c.id
         ORDER BY c.course_name
       `;
     }
