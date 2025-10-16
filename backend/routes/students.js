@@ -1,4 +1,3 @@
-// backend/routes/students.js
 const express = require('express');
 const router = express.Router();
 const pool = require('../db');
@@ -11,11 +10,11 @@ router.get('/', auth, async (req, res) => {
       return res.status(403).json({ message: 'Only PL or PRL can view students' });
     }
 
-    const [rows] = await pool.query(
-      'SELECT id, name, email, role FROM users WHERE role = "student" ORDER BY name'
+    const result = await pool.query(
+      "SELECT id, name, email, role FROM users WHERE role = 'student' ORDER BY name"
     );
 
-    res.json(rows);
+    res.json(result.rows);
   } catch (err) {
     console.error('❌ Error fetching students:', err);
     res.status(500).json({ message: 'Error fetching students' });
