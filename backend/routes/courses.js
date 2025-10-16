@@ -46,7 +46,7 @@ router.get('/', auth, async (req, res) => {
         FROM courses c
         LEFT JOIN course_lecturers cl ON cl.course_id = c.id
         LEFT JOIN users u ON cl.lecturer_id = u.id
-        GROUP BY c.id
+        GROUP BY c.id, c.faculty_name, c.class_name, c.course_name, c.course_code, c.venue, c.scheduled_time, c.total_registered
         ORDER BY c.course_name
       `;
     }
@@ -81,7 +81,7 @@ router.post('/', auth, async (req, res) => {
       `INSERT INTO courses
         (faculty_name, class_name, course_name, course_code, venue, scheduled_time, total_registered)
        VALUES ($1, $2, $3, $4, $5, $6, $7)
-       RETURNING id`,
+       RETURNING *`,
       [
         faculty_name,
         class_name,
@@ -93,7 +93,7 @@ router.post('/', auth, async (req, res) => {
       ]
     );
 
-    res.json({ id: result.rows[0].id, message: 'Course added successfully' });
+    res.json({ course: result.rows[0], message: 'Course added successfully' });
 
   } catch (err) {
     console.error('❌ Course add error:', err);
