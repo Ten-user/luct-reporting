@@ -57,7 +57,7 @@ export default function ReportsList() {
 
   return (
     <div>
-      <h3>📊 Reports</h3>
+      <h3>Reports</h3>
 
       {/* 🔍 Search bar + Export button */}
       <div className="d-flex justify-content-between mb-3">
