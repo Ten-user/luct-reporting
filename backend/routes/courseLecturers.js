@@ -3,7 +3,7 @@ const router = express.Router();
 const pool = require('../db');
 const auth = require('../middleware/auth');
 
-// 🔹 GET all assigned lecturers (PL only)
+// GET all assigned lecturers (PL only)
 router.get('/', auth, async (req, res) => {
   try {
     if (req.user.role !== 'pl') {
@@ -25,7 +25,7 @@ router.get('/', auth, async (req, res) => {
   }
 });
 
-// 🔹 POST assign lecturer
+// POST assign lecturer
 router.post('/', auth, async (req, res) => {
   try {
     if (req.user.role !== 'pl') {
@@ -46,7 +46,7 @@ router.post('/', auth, async (req, res) => {
   }
 });
 
-// 🔹 DELETE unassign lecturer
+// DELETE unassign lecturer
 router.delete('/:id', auth, async (req, res) => {
   try {
     if (req.user.role !== 'pl') {
