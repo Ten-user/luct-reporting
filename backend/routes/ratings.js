@@ -33,7 +33,7 @@ router.get('/', auth, async (req, res) => {
 
     if (req.user.role === 'student') {
       query = `
-        SELECT r.id, c.class_name, r.rating AS score, r.comment AS feedback, r.created_at
+        SELECT r.id, c.class_name, r.rating, r.comment, r.created_at
         FROM ratings r
         JOIN courses c ON r.course_id = c.id
         WHERE r.student_id = $1
@@ -43,19 +43,18 @@ router.get('/', auth, async (req, res) => {
 
     } else if (req.user.role === 'lecturer') {
       query = `
-        SELECT r.id, c.class_name, r.rating AS score, r.comment AS feedback, r.created_at, u.name AS student_name
+        SELECT r.id, c.class_name, r.rating, r.comment, r.created_at, u.name AS student_name
         FROM ratings r
         JOIN courses c ON r.course_id = c.id
-        JOIN lectures l ON l.course_id = c.id
         JOIN users u ON r.student_id = u.id
-        WHERE l.lecturer_id = $1
+        JOIN lectures l ON l.course_id = c.id AND l.lecturer_id = $1
         ORDER BY r.created_at DESC
       `;
       params = [req.user.id];
 
     } else if (req.user.role === 'prl') {
       query = `
-        SELECT r.id, c.class_name, r.rating AS score, r.comment AS feedback, r.created_at,
+        SELECT r.id, c.class_name, r.rating, r.comment, r.created_at,
                u.name AS student_name, c.faculty_name
         FROM ratings r
         JOIN courses c ON r.course_id = c.id
@@ -67,7 +66,7 @@ router.get('/', auth, async (req, res) => {
 
     } else if (req.user.role === 'pl') {
       query = `
-        SELECT r.id, c.class_name, r.rating AS score, r.comment AS feedback, r.created_at,
+        SELECT r.id, c.class_name, r.rating, r.comment, r.created_at,
                u.name AS student_name, c.faculty_name
         FROM ratings r
         JOIN courses c ON r.course_id = c.id
