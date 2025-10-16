@@ -15,7 +15,7 @@ router.get('/', auth, async (req, res) => {
         SELECT c.* 
         FROM courses c
         JOIN student_courses sc ON sc.course_id = c.id
-        WHERE sc.student_id = ?
+        WHERE sc.student_id = $1
         ORDER BY c.course_name`;
       params = [req.user.id];
 
@@ -24,7 +24,7 @@ router.get('/', auth, async (req, res) => {
         SELECT c.*
         FROM courses c
         JOIN course_lecturers cl ON cl.course_id = c.id
-        WHERE cl.lecturer_id = ?
+        WHERE cl.lecturer_id = $1
         ORDER BY c.course_name`;
       params = [req.user.id];
 
@@ -32,14 +32,14 @@ router.get('/', auth, async (req, res) => {
       query = `
         SELECT c.*
         FROM courses c
-        WHERE c.faculty_name = ?
+        WHERE c.faculty_name = $1
         ORDER BY c.course_name`;
       params = [req.user.faculty_name];
 
     } else {
       // PL → all courses + lecturers list
       query = `
-        SELECT c.*, GROUP_CONCAT(u.name) AS lecturers
+        SELECT c.*, STRING_AGG(u.name, ', ') AS lecturers
         FROM courses c
         LEFT JOIN course_lecturers cl ON cl.course_id = c.id
         LEFT JOIN users u ON cl.lecturer_id = u.id
@@ -47,8 +47,8 @@ router.get('/', auth, async (req, res) => {
         ORDER BY c.course_name`;
     }
 
-    const [rows] = await pool.query(query, params);
-    res.json(rows);
+    const result = await pool.query(query, params);
+    res.json(result.rows);
   } catch (err) {
     console.error('❌ Courses fetch error:', err);
     res.status(500).json({ message: 'Error fetching courses' });
@@ -72,14 +72,15 @@ router.post('/', auth, async (req, res) => {
       total_registered
     } = req.body;
 
-    const [result] = await pool.query(
+    const result = await pool.query(
       `INSERT INTO courses 
       (faculty_name, class_name, course_name, course_code, venue, scheduled_time, total_registered) 
-      VALUES (?,?,?,?,?,?,?)`,
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      RETURNING id`,
       [faculty_name, class_name, course_name, course_code, venue, scheduled_time, total_registered || 0]
     );
 
-    res.json({ id: result.insertId, message: 'Course added successfully' });
+    res.json({ id: result.rows[0].id, message: 'Course added successfully' });
   } catch (err) {
     console.error('❌ Course add error:', err);
     res.status(500).json({ message: 'Server error' });
